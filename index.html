@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lotus - PC Optimizer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        :root{
+            --accent:#d44fa0;--accent-soft:#e06cb5;--accent-deep:#b83490;
+            --accent-glow:rgba(212,79,160,0.3);--accent-subtle:rgba(212,79,160,0.06);
+            --green:#3dd68c;
+            --bg:#050507;--card:rgba(255,255,255,0.02);--border:rgba(255,255,255,0.045);
+            --text:#eae8ef;--dim:#7d7a8a;--muted:#4e4b5a;
+        }
+        html{scroll-behavior:smooth}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;-webkit-font-smoothing:antialiased;cursor:none}
+        h1,h2,h3,.nav-brand,.hero-btn,.pcard-btn,.stat-val,.badge,.section-label,.section-title,.preview-title,.cta-section h2{font-family:'Inter',sans-serif}
+        .fcard-tag,.stat-lbl,.nav-status,.price-period,.footer-brand{font-family:'Inter',sans-serif}
+        ::selection{background:rgba(212,79,160,0.2);color:#fff}
+        ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(212,79,160,0.12);border-radius:2px}
+
+        /* ═══ CURSOR GLOW ═══ */
+        #cursorGlow{
+            position:fixed;width:350px;height:350px;border-radius:50%;
+            background:radial-gradient(circle,rgba(212,79,160,0.12) 0%,rgba(212,79,160,0.04) 30%,transparent 60%);
+            pointer-events:none;z-index:50;transform:translate(-50%,-50%);
+            transition:opacity 0.3s;filter:blur(2px);
+            mix-blend-mode:screen;
+        }
+        #cursorDot{
+            position:fixed;width:6px;height:6px;border-radius:50%;
+            background:var(--accent-soft);pointer-events:none;z-index:51;
+            transform:translate(-50%,-50%);
+            box-shadow:0 0 12px var(--accent-glow),0 0 4px var(--accent);
+            transition:width 0.2s,height 0.2s;
+        }
+        a,button,.hero-btn,.nav-btn,.pcard-btn{cursor:none}
+        @media(pointer:coarse){body{cursor:auto}#cursorGlow,#cursorDot{display:none}a,button,.hero-btn,.nav-btn,.pcard-btn{cursor:pointer}}
+
+        /* ═══ LOTUS LOADER ═══ */
+        #lotusIntro{
+            position:fixed;inset:0;z-index:9999;background:var(--bg);
+            display:flex;flex-direction:column;align-items:center;justify-content:center;
+            transition:opacity 0.9s cubic-bezier(0.4,0,0.2,1),visibility 0.9s;
+            overflow:hidden;pointer-events:auto;cursor:wait;
+        }
+        #lotusIntro.done{opacity:0;visibility:hidden;pointer-events:none}
+        #lotusIntro:not(.done) ~ #cursorGlow,#lotusIntro:not(.done) ~ #cursorDot{opacity:0!important;visibility:hidden!important}
+
+        /* Particles canvas */
+        #introParticles{position:absolute;inset:0;z-index:0}
+
+        /* Radial glow behind logo */
+        .intro-glow{
+            position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+            width:500px;height:500px;border-radius:50%;
+            background:radial-gradient(circle,rgba(212,79,160,0.2) 0%,rgba(212,79,160,0.08) 35%,rgba(212,79,160,0.02) 55%,transparent 70%);
+            filter:blur(40px);opacity:0;animation:glowIn 1.5s 0.2s ease forwards;z-index:1;
+        }
+        .intro-glow-ring{
+            position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+            width:280px;height:280px;border-radius:50%;
+            border:1px solid rgba(212,79,160,0.1);
+            box-shadow:0 0 60px rgba(212,79,160,0.06),inset 0 0 60px rgba(212,79,160,0.03);
+            opacity:0;animation:glowIn 1s 0.5s ease forwards;z-index:1;
+        }
+        @keyframes glowIn{0%{opacity:0;transform:translate(-50%,-50%) scale(0.5)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+
+        /* Lotus flower container */
+        .intro-lotus{width:140px;height:140px;position:relative;z-index:2}
+        .intro-lotus svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 0 30px rgba(212,79,160,0.5)) drop-shadow(0 0 60px rgba(212,79,160,0.2))}
+
+        .petal{opacity:0;transform-origin:center bottom;animation:petalBloom 0.7s cubic-bezier(0.34,1.56,0.64,1) forwards}
+        .petal-1{animation-delay:0.1s;transform-origin:50% 100%}
+        .petal-2{animation-delay:0.25s;transform-origin:30% 90%}
+        .petal-3{animation-delay:0.25s;transform-origin:70% 90%}
+        .petal-4{animation-delay:0.4s;transform-origin:20% 85%}
+        .petal-5{animation-delay:0.4s;transform-origin:80% 85%}
+        .petal-6{animation-delay:0.55s;transform-origin:15% 90%}
+        .petal-7{animation-delay:0.55s;transform-origin:85% 90%}
+        .leaf-1{animation-delay:0.7s;transform-origin:40% 80%}
+        .leaf-2{animation-delay:0.75s;transform-origin:60% 80%}
+        .leaf-3{animation-delay:0.8s;transform-origin:35% 85%}
+        .leaf-4{animation-delay:0.85s;transform-origin:65% 85%}
+
+        @keyframes petalBloom{
+            0%{opacity:0;transform:scale(0.3) rotate(-15deg)}
+            60%{opacity:1;transform:scale(1.05) rotate(2deg)}
+            100%{opacity:1;transform:scale(1) rotate(0)}
+        }
+
+        /* Progress bar & text beneath logo */
+        .intro-bottom{
+            position:absolute;top:calc(50% + 90px);left:50%;transform:translateX(-50%);
+            display:flex;flex-direction:column;align-items:center;gap:14px;z-index:2;
+        }
+        .intro-bar-wrap{
+            width:220px;height:3px;background:rgba(255,255,255,0.04);border-radius:3px;
+            overflow:hidden;position:relative;border:1px solid rgba(255,255,255,0.03);
+            opacity:0;animation:fadeUp 0.4s 0.8s ease forwards;
+        }
+        .intro-bar{
+            height:100%;width:0%;border-radius:3px;
+            background:linear-gradient(90deg,var(--accent-deep),var(--accent),var(--accent-soft));
+            box-shadow:0 0 12px var(--accent-glow),0 0 4px var(--accent);
+            transition:width 0.15s linear;
+        }
+        .intro-percent{
+            font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:rgba(212,79,160,0.7);
+            letter-spacing:2px;opacity:0;animation:fadeUp 0.4s 0.9s ease forwards;
+        }
+        .intro-status{
+            font-family:'Inter',sans-serif;font-size:11px;font-weight:500;
+            color:var(--dim);letter-spacing:1.5px;opacity:0;
+            animation:fadeUp 0.4s 1.0s ease forwards;
+        }
+        /* Cryptic-style bottom bar */
+        .intro-bottom-bar{
+            position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.04);
+            z-index:3;overflow:hidden;
+        }
+        .intro-bottom-bar-fill{
+            height:100%;width:0%;background:linear-gradient(90deg,var(--accent-deep),var(--accent),var(--accent-soft));
+            box-shadow:0 0 12px var(--accent-glow);transition:width 0.1s linear;
+        }
+        .intro-bottom-text{
+            position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+            font-family:'Inter',sans-serif;font-size:10px;font-weight:500;color:var(--dim);
+            letter-spacing:2px;text-transform:uppercase;z-index:3;
+        }
+        @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+        /* ═══ BG — Wave-style half glow / half halftone ═══ */
+        .bg-effects{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+
+        /* Upper glows — soft diffused light (top half) */
+        .glow{position:absolute;border-radius:50%}
+        .glow-1{
+            width:900px;height:600px;top:-10%;left:50%;transform:translateX(-50%);
+            background:radial-gradient(ellipse,rgba(212,79,160,0.16) 0%,rgba(212,79,160,0.06) 35%,transparent 70%);
+            filter:blur(80px);
+        }
+        .glow-2{
+            width:500px;height:400px;top:5%;left:15%;
+            background:radial-gradient(circle,rgba(180,60,140,0.08),transparent 65%);
+            filter:blur(100px);
+        }
+        .glow-3{
+            width:400px;height:350px;top:8%;right:12%;
+            background:radial-gradient(circle,rgba(212,79,160,0.06),transparent 65%);
+            filter:blur(100px);
+        }
+
+        /* Mid-section divider glow — the transition band */
+        .glow-band{
+            position:absolute;top:48%;left:0;right:0;height:2px;
+            background:linear-gradient(90deg,transparent 5%,rgba(212,79,160,0.06) 30%,rgba(212,79,160,0.1) 50%,rgba(212,79,160,0.06) 70%,transparent 95%);
+            box-shadow:0 0 60px 30px rgba(212,79,160,0.03);
+            z-index:1;
+        }
+
+        /* Halftone dot grid — visible in TOP half, fades to transparent at bottom */
+        .dot-grid{
+            position:fixed;inset:0;z-index:0;pointer-events:none;
+            background-image:radial-gradient(circle,rgba(255,255,255,0.08) 1px,transparent 1px);
+            background-size:24px 24px;
+            mask-image:linear-gradient(to bottom,rgba(0,0,0,0.8) 0%,rgba(0,0,0,0.7) 30%,rgba(0,0,0,0.4) 50%,rgba(0,0,0,0.1) 65%,transparent 80%);
+            -webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,0.8) 0%,rgba(0,0,0,0.7) 30%,rgba(0,0,0,0.4) 50%,rgba(0,0,0,0.1) 65%,transparent 80%);
+        }
+
+        /* Secondary finer dot layer for depth */
+        .dot-grid-fine{
+            position:fixed;inset:0;z-index:0;pointer-events:none;
+            background-image:radial-gradient(circle,rgba(212,79,160,0.05) 0.7px,transparent 0.7px);
+            background-size:24px 24px;
+            background-position:12px 12px;
+            mask-image:linear-gradient(to bottom,rgba(0,0,0,0.5) 0%,rgba(0,0,0,0.3) 40%,transparent 70%);
+            -webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,0.5) 0%,rgba(0,0,0,0.3) 40%,transparent 70%);
+        }
+
+        .lotus-watermark{
+            position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+            width:750px;height:750px;opacity:0.02;z-index:0;pointer-events:none;
+        }
+
+        /* ═══ NAV ═══ */
+        nav{
+            position:fixed;top:0;left:0;right:0;z-index:100;
+            background:rgba(5,5,7,0.6);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+            border-bottom:1px solid rgba(255,255,255,0.03);
+            transform:translateY(-100%);transition:transform 0.5s ease;
+        }
+        nav.visible{transform:translateY(0)}
+        .nav-inner{max-width:1120px;margin:0 auto;padding:0 32px;height:58px;display:flex;align-items:center;justify-content:space-between}
+        .nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);font-weight:700;font-size:18px;letter-spacing:-0.3px}
+        .nav-brand svg{width:32px;height:32px;filter:drop-shadow(0 0 8px var(--accent-glow))}
+        .nav-status{display:flex;align-items:center;gap:5px;font-size:9px;color:var(--green);font-weight:400;letter-spacing:0.8px;text-transform:uppercase}
+        .nav-status::before{content:'';width:5px;height:5px;background:var(--green);border-radius:50%;box-shadow:0 0 6px var(--green);animation:pulse 2.5s infinite}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+        .nav-right{display:flex;align-items:center;gap:6px}
+        .nav-btn{
+            display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:8px;
+            font-size:12px;font-weight:600;text-decoration:none;transition:all 0.2s;border:none;cursor:pointer
+        }
+        .nav-btn.ghost{color:var(--dim);background:transparent}.nav-btn.ghost:hover{color:var(--text);background:rgba(255,255,255,0.04)}
+        .nav-btn.purchase{background:var(--accent);color:#fff;box-shadow:0 2px 14px var(--accent-glow)}.nav-btn.purchase:hover{box-shadow:0 4px 22px rgba(212,79,160,0.5);transform:translateY(-1px)}
+        .nav-btn.discord{background:rgba(88,101,242,0.1);color:#8b96f7;border:1px solid rgba(88,101,242,0.12)}.nav-btn.discord:hover{background:rgba(88,101,242,0.18)}
+        .nav-btn svg{width:13px;height:13px}
+
+        /* ═══ HERO ═══ */
+        .hero{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:100px 24px 60px}
+        .badge{
+            display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:100px;
+            background:var(--accent-subtle);border:1px solid rgba(212,79,160,0.14);
+            font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2.5px;color:var(--accent-soft);margin-bottom:38px
+        }
+        .badge::before{content:'';width:6px;height:6px;background:var(--accent);border-radius:50%;box-shadow:0 0 8px var(--accent);animation:pulse 2.5s infinite}
+        .hero h1{font-size:clamp(52px,8vw,96px);font-weight:600;line-height:1.05;letter-spacing:-1px;margin-bottom:22px;color:#fff}
+        .hero h1 .hl{color:var(--accent-soft);text-shadow:0 0 60px var(--accent-glow),0 0 120px rgba(212,79,160,0.15);font-weight:700}
+        .hero-sub{font-size:15px;color:var(--dim);max-width:440px;line-height:1.8;margin-bottom:44px}
+        .hero-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:80px}
+        .hero-btn{
+            display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border-radius:10px;
+            font-size:13px;font-weight:700;text-decoration:none;transition:all 0.25s;cursor:pointer;border:none
+        }
+        .hero-btn.primary{background:var(--accent);color:#fff;box-shadow:0 4px 28px var(--accent-glow),inset 0 1px 0 rgba(255,255,255,0.12)}
+        .hero-btn.primary:hover{transform:translateY(-3px);box-shadow:0 8px 40px rgba(212,79,160,0.5)}
+        .hero-btn.secondary{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);color:var(--text);backdrop-filter:blur(8px)}
+        .hero-btn.secondary:hover{background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.12);transform:translateY(-3px)}
+        .hero-btn svg{width:14px;height:14px}
+        .stats{display:flex;gap:0}
+        .stat{text-align:center;padding:0 44px;position:relative}
+        .stat:not(:last-child)::after{content:'';position:absolute;right:0;top:15%;height:70%;width:1px;background:rgba(255,255,255,0.06)}
+        .stat-val{font-size:40px;font-weight:800;letter-spacing:-1px;color:#fff}
+        .stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:6px}
+
+        /* ═══ SCROLL REVEAL ═══ */
+        .reveal{opacity:0;transform:translateY(40px);transition:all 0.7s cubic-bezier(0.16,1,0.3,1)}
+        .reveal.visible{opacity:1;transform:translateY(0)}
+        .reveal-left{opacity:0;transform:translateX(-40px);transition:all 0.7s cubic-bezier(0.16,1,0.3,1)}
+        .reveal-left.visible{opacity:1;transform:translateX(0)}
+        .reveal-right{opacity:0;transform:translateX(40px);transition:all 0.7s cubic-bezier(0.16,1,0.3,1)}
+        .reveal-right.visible{opacity:1;transform:translateX(0)}
+        .reveal-scale{opacity:0;transform:scale(0.9);transition:all 0.7s cubic-bezier(0.16,1,0.3,1)}
+        .reveal-scale.visible{opacity:1;transform:scale(1)}
+
+        /* ═══ SECTIONS ═══ */
+        .section{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:100px 32px}
+        .section-label{text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:4px;color:var(--accent-soft);margin-bottom:14px;opacity:0.7}
+        .section-title{text-align:center;font-size:40px;font-weight:600;letter-spacing:-0.5px;margin-bottom:10px;color:#fff}
+        .section-desc{text-align:center;font-size:14px;color:var(--dim);margin-bottom:50px}
+
+        /* ═══ FEATURES ═══ */
+        .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+        .fcard{
+            background:var(--card);border:1px solid var(--border);border-radius:16px;
+            padding:32px;position:relative;overflow:hidden;transition:all 0.4s cubic-bezier(0.16,1,0.3,1)
+        }
+        .fcard::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(212,79,160,0.15),transparent);opacity:0;transition:opacity 0.4s}
+        .fcard::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(212,79,160,0.03),transparent 60%);opacity:0;transition:opacity 0.4s}
+        .fcard:hover{border-color:rgba(212,79,160,0.14);transform:translateY(-6px);box-shadow:0 20px 60px rgba(0,0,0,0.25)}
+        .fcard:hover::before,.fcard:hover::after{opacity:1}
+        .fcard-icon{
+            width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+            margin-bottom:20px;position:relative;z-index:1;background:rgba(212,79,160,0.08);color:var(--accent-soft);
+            transition:all 0.3s
+        }
+        .fcard:hover .fcard-icon{background:rgba(212,79,160,0.14);box-shadow:0 0 20px rgba(212,79,160,0.15)}
+        .fcard-icon svg{width:18px;height:18px}
+        .fcard-tag{
+            position:absolute;top:24px;right:24px;z-index:1;
+            font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;
+            color:var(--muted);background:rgba(255,255,255,0.03);padding:4px 10px;border-radius:4px;border:1px solid rgba(255,255,255,0.04)
+        }
+        .fcard h3{font-size:17px;font-weight:700;margin-bottom:8px;position:relative;z-index:1;letter-spacing:-0.3px}
+        .fcard p{font-size:13px;color:var(--dim);line-height:1.8;position:relative;z-index:1}
+
+        /* ═══ PRICING ═══ */
+        .pricing-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+        .pcard{
+            background:var(--card);border:1px solid var(--border);border-radius:16px;
+            padding:28px;position:relative;transition:all 0.4s cubic-bezier(0.16,1,0.3,1)
+        }
+        .pcard:hover{border-color:rgba(212,79,160,0.12);transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,0,0,0.2)}
+        .pcard.popular{border-color:rgba(212,79,160,0.25);box-shadow:0 0 50px rgba(212,79,160,0.05)}
+        .pcard-badge{
+            position:absolute;top:-10px;right:20px;background:var(--accent);color:#fff;
+            font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;
+            padding:4px 12px;border-radius:6px;box-shadow:0 4px 16px var(--accent-glow)
+        }
+        .pcard h3{font-size:16px;font-weight:700;margin-bottom:10px;letter-spacing:-0.3px}
+        .pcard-price{margin-bottom:20px}
+        .pcard-price .amount{font-size:34px;font-weight:800;letter-spacing:-0.5px;color:#fff}
+        .pcard-price .period{font-size:11px;color:var(--muted);letter-spacing:0}
+        .pcard ul{list-style:none;margin-bottom:22px}
+        .pcard li{font-size:12.5px;color:var(--dim);padding:5px 0;display:flex;align-items:center;gap:8px}
+        .pcard li::before{content:'✓';font-size:10px;color:var(--accent-soft);font-weight:700}
+        .pcard-btn{
+            display:block;width:100%;padding:10px 0;border-radius:8px;font-size:12px;font-weight:700;
+            text-align:center;text-decoration:none;transition:all 0.25s;cursor:pointer;
+            background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:var(--dim);
+        }
+        .pcard-btn:hover{background:rgba(255,255,255,0.08);color:var(--text);transform:translateY(-1px)}
+        .pcard.popular .pcard-btn{background:var(--accent);color:#fff;border:none;box-shadow:0 4px 20px var(--accent-glow)}
+        .pcard.popular .pcard-btn:hover{box-shadow:0 6px 28px rgba(212,79,160,0.5);transform:translateY(-2px)}
+
+        /* Moving bar around UI frame — continuous slow sweep */
+        .ui-frame-sweep{
+            position:absolute;inset:0;z-index:11;pointer-events:none;border-radius:16px;
+        }
+        .ui-frame-sweep::before{
+            content:'';position:absolute;width:8px;height:8px;top:0;left:0;
+            background:var(--accent);border-radius:50%;
+            box-shadow:0 0 12px var(--accent-glow),0 0 24px rgba(212,79,160,0.4);
+            animation:sweepAround 8s linear infinite;
+        }
+        @keyframes sweepAround{
+            0%{top:0;left:0}
+            25%{top:0;left:100%;transform:translate(-100%,0)}
+            50%{top:100%;left:100%;transform:translate(-100%,-100%)}
+            75%{top:100%;left:0;transform:translate(0,-100%)}
+            100%{top:0;left:0}
+        }
+
+        /* ═══ UI PREVIEW ═══ */
+        .preview-section{position:relative;z-index:1;padding:40px 32px 100px;max-width:1120px;margin:0 auto}
+        .preview-label{text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:4px;color:var(--accent-soft);margin-bottom:14px;opacity:0.7}
+        .preview-title{text-align:center;font-size:40px;font-weight:600;letter-spacing:-0.5px;margin-bottom:10px;color:#fff}
+        .preview-desc{text-align:center;font-size:14px;color:var(--dim);margin-bottom:50px}
+
+        .ui-frame{
+            position:relative;border-radius:16px;overflow:hidden;
+            background:#0a0a0f;border:1px solid rgba(255,255,255,0.06);
+            box-shadow:0 40px 100px rgba(0,0,0,0.5),0 0 0 1px rgba(255,255,255,0.02);
+            aspect-ratio:16/9;max-height:520px;
+        }
+
+        /* Scanning glow bar */
+        .scan-bar{
+            position:absolute;top:0;left:0;width:100%;height:100%;z-index:10;pointer-events:none;
+        }
+        .scan-bar::before{
+            content:'';position:absolute;top:0;left:-100%;width:100%;height:2px;
+            background:linear-gradient(90deg,transparent,var(--accent-soft),var(--accent),var(--accent-soft),transparent);
+            box-shadow:0 0 20px var(--accent-glow),0 0 60px rgba(212,79,160,0.15),0 4px 12px var(--accent-glow);
+            animation:scanLoop 3.5s ease-in-out infinite;
+        }
+        .scan-bar::after{
+            content:'';position:absolute;top:0;left:-100%;width:100%;height:80px;
+            background:linear-gradient(to bottom,rgba(212,79,160,0.06),transparent);
+            animation:scanLoop 3.5s ease-in-out infinite;
+        }
+        @keyframes scanLoop{
+            0%{left:-100%}
+            45%,55%{left:0}
+            100%{left:100%}
+        }
+
+        /* Mock UI inside frame */
+        .mock-ui{display:flex;height:100%;position:relative}
+        .mock-sidebar{
+            width:56px;background:rgba(255,255,255,0.015);border-right:1px solid rgba(255,255,255,0.04);
+            display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:10px;flex-shrink:0;
+        }
+        .mock-sb-logo{width:28px;height:28px;border-radius:8px;background:rgba(212,79,160,0.12);margin-bottom:12px;display:flex;align-items:center;justify-content:center}
+        .mock-sb-logo svg{width:16px;height:16px}
+        .mock-sb-item{
+            width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,0.02);
+            display:flex;align-items:center;justify-content:center;position:relative;
+        }
+        .mock-sb-item.active{background:rgba(212,79,160,0.1)}
+        .mock-sb-item.active::before{
+            content:'';position:absolute;left:-12px;top:50%;transform:translateY(-50%);
+            width:3px;height:16px;border-radius:0 3px 3px 0;background:var(--accent);
+            box-shadow:0 0 8px var(--accent-glow);
+        }
+        .mock-sb-dot{width:10px;height:10px;border-radius:3px;background:rgba(255,255,255,0.07)}
+        .mock-sb-item.active .mock-sb-dot{background:rgba(212,79,160,0.35)}
+
+        .mock-main{flex:1;padding:20px 24px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+        .mock-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+        .mock-title{font-size:15px;font-weight:700;color:rgba(255,255,255,0.9)}
+        .mock-subtitle{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:2px}
+
+        .mock-cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+        .mock-card{
+            background:rgba(255,255,255,0.015);border:1px solid rgba(255,255,255,0.03);
+            border-radius:10px;padding:14px 16px;
+        }
+        .mock-card-label{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px}
+        .mock-card-val{font-size:20px;font-weight:800;color:#fff;letter-spacing:-0.5px}
+        .mock-card-val .unit{font-size:11px;color:var(--dim);font-weight:500;margin-left:2px}
+        .mock-card-bar{height:3px;border-radius:2px;background:rgba(255,255,255,0.04);margin-top:10px;overflow:hidden}
+        .mock-card-fill{height:100%;border-radius:2px}
+        .mock-card-fill.cpu{width:45%;background:linear-gradient(90deg,var(--accent-deep),var(--accent))}
+        .mock-card-fill.ram{width:62%;background:linear-gradient(90deg,var(--accent),var(--accent-soft))}
+        .mock-card-fill.gpu{width:38%;background:linear-gradient(90deg,var(--green),#55efc4)}
+
+        .mock-tweaks{display:flex;flex-direction:column;gap:6px;flex:1}
+        .mock-tweak{
+            display:flex;align-items:center;justify-content:space-between;
+            background:rgba(255,255,255,0.012);border:1px solid rgba(255,255,255,0.025);
+            border-radius:8px;padding:10px 14px;
+        }
+        .mock-tweak-left{display:flex;flex-direction:column;gap:2px}
+        .mock-tweak-name{font-size:11px;font-weight:600;color:rgba(255,255,255,0.85)}
+        .mock-tweak-desc{font-size:8px;color:var(--muted)}
+        .mock-toggle{
+            width:30px;height:16px;border-radius:10px;position:relative;flex-shrink:0;
+        }
+        .mock-toggle.off{background:rgba(255,255,255,0.06)}
+        .mock-toggle.on{background:rgba(212,79,160,0.3);box-shadow:0 0 8px rgba(212,79,160,0.15)}
+        .mock-toggle::after{
+            content:'';position:absolute;top:2px;width:12px;height:12px;border-radius:50%;
+            background:rgba(255,255,255,0.5);transition:all 0.2s;
+        }
+        .mock-toggle.off::after{left:2px}
+        .mock-toggle.on::after{left:16px;background:var(--accent-soft)}
+
+        .mock-tweak-tag{
+            font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+            padding:2px 6px;border-radius:3px;margin-left:8px;
+        }
+        .mock-tweak-tag.rec{background:rgba(61,214,140,0.1);color:#3dd68c}
+        .mock-tweak-tag.pwr{background:rgba(255,165,0,0.1);color:#ffa500}
+
+        @media(max-width:640px){
+            .mock-cards{grid-template-columns:1fr}
+            .ui-frame{aspect-ratio:4/3}
+        }
+
+        /* ═══ CTA ═══ */
+        .cta-section{position:relative;z-index:1;text-align:center;padding:80px 24px;border-top:1px solid rgba(255,255,255,0.03)}
+        .cta-section h2{font-size:36px;font-weight:600;margin-bottom:8px;color:#fff;letter-spacing:-0.5px}
+        .cta-section p{font-size:14px;color:var(--dim);margin-bottom:28px}
+        .cta-btns{display:flex;gap:10px;justify-content:center}
+
+        /* ═══ FOOTER ═══ */
+        footer{position:relative;z-index:1;border-top:1px solid rgba(255,255,255,0.03);padding:20px 32px}
+        .footer-inner{max-width:1120px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+        .footer-brand{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--muted)}
+        .footer-brand svg{width:14px;height:14px;opacity:0.4}
+        .footer-links{display:flex;gap:20px}
+        .footer-links a{font-size:11px;color:var(--muted);text-decoration:none;transition:color 0.2s}
+        .footer-links a:hover{color:var(--dim)}
+
+        /* ═══ HERO ANIM ═══ */
+        .hero-content{opacity:0;transform:translateY(30px)}
+        .hero-content.show{animation:heroIn 0.8s 0.3s cubic-bezier(0.16,1,0.3,1) forwards}
+        @keyframes heroIn{to{opacity:1;transform:translateY(0)}}
+        .hero-content .badge{opacity:0;animation:fadeUpItem 0.5s 0.5s ease forwards}
+        .hero-content h1{opacity:0;animation:fadeUpItem 0.6s 0.65s ease forwards}
+        .hero-content .hero-sub{opacity:0;animation:fadeUpItem 0.5s 0.8s ease forwards}
+        .hero-content .hero-btns{opacity:0;animation:fadeUpItem 0.5s 0.95s ease forwards}
+        .hero-content .stats{opacity:0;animation:fadeUpItem 0.5s 1.1s ease forwards}
+        @keyframes fadeUpItem{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+        @media(max-width:900px){.features-grid,.pricing-grid{grid-template-columns:1fr 1fr}}
+        @media(max-width:640px){
+            .features-grid,.pricing-grid{grid-template-columns:1fr}
+            .stats{flex-direction:column;gap:20px}.stat::after{display:none}
+            .nav-btn.ghost{display:none}
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══ LOTUS LOADER ═══ -->
+<div id="lotusIntro">
+    <canvas id="introParticles"></canvas>
+    <div class="intro-glow"></div>
+    <div class="intro-glow-ring"></div>
+    <div class="intro-lotus">
+        <svg viewBox="0 0 200 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path class="petal petal-1" d="M100 30 C100 30,75 70,100 105 C125 70,100 30,100 30Z" fill="#d44fa0"/>
+            <path class="petal petal-2" d="M100 105 C100 105,50 72,58 95 C66 118,100 105,100 105Z" fill="#e06cb5"/>
+            <path class="petal petal-3" d="M100 105 C100 105,150 72,142 95 C134 118,100 105,100 105Z" fill="#e06cb5"/>
+            <path class="petal petal-4" d="M100 105 C100 105,32 82,44 106 C56 130,100 105,100 105Z" fill="#d44fa0" opacity="0.8"/>
+            <path class="petal petal-5" d="M100 105 C100 105,168 82,156 106 C144 130,100 105,100 105Z" fill="#d44fa0" opacity="0.8"/>
+            <path class="petal petal-6" d="M100 105 C100 105,20 92,34 114 C48 128,100 105,100 105Z" fill="#b83490" opacity="0.6"/>
+            <path class="petal petal-7" d="M100 105 C100 105,180 92,166 114 C152 128,100 105,100 105Z" fill="#b83490" opacity="0.6"/>
+            <path class="petal leaf-1" d="M72 118 C62 112,32 120,44 136 C54 133,72 124,72 118Z" fill="#3dd68c"/>
+            <path class="petal leaf-2" d="M128 118 C138 112,168 120,156 136 C146 133,128 124,128 118Z" fill="#55efc4"/>
+            <path class="petal leaf-3" d="M80 122 C72 118,48 125,58 134 C66 131,80 127,80 122Z" fill="#3dd68c" opacity="0.5"/>
+            <path class="petal leaf-4" d="M120 122 C128 118,152 125,142 134 C134 131,120 127,120 122Z" fill="#55efc4" opacity="0.5"/>
+            <path class="petal leaf-1" d="M88 118 Q100 122 112 118 Q108 120 100 122 Q92 120 88 118Z" fill="rgba(255,255,255,0.1)"/>
+        </svg>
+    </div>
+    <div class="intro-bottom">
+        <div class="intro-bar-wrap"><div class="intro-bar" id="introBar"></div></div>
+        <div class="intro-percent" id="introPercent">0%</div>
+        <div class="intro-status" id="introStatus">Initializing environment...</div>
+    </div>
+    <!-- Cryptic-style bottom bar -->
+    <div class="intro-bottom-bar"><div class="intro-bottom-bar-fill" id="introBottomBar"></div></div>
+    <div class="intro-bottom-text" id="introBottomText">Initializing environment...</div>
+</div>
+
+<div id="cursorGlow"></div>
+<div id="cursorDot"></div>
+<div class="bg-effects"><div class="glow glow-1"></div><div class="glow glow-2"></div><div class="glow glow-3"></div><div class="glow-band"></div></div>
+<div class="dot-grid"></div>
+<div class="dot-grid-fine"></div>
+<svg class="lotus-watermark" viewBox="0 0 200 200" fill="none"><path d="M100 30C100 30 70 75 100 105C130 75 100 30 100 30Z" fill="#d44fa0"/><path d="M100 105C100 105 45 70 55 95C65 120 100 105 100 105Z" fill="#e06cb5"/><path d="M100 105C100 105 155 70 145 95C135 120 100 105 100 105Z" fill="#e06cb5"/><path d="M100 105C100 105 30 85 42 108C54 131 100 105 100 105Z" fill="#d44fa0" opacity="0.7"/><path d="M100 105C100 105 170 85 158 108C146 131 100 105 100 105Z" fill="#d44fa0" opacity="0.7"/><path d="M72 118C60 112 30 122 42 138C54 134 72 124 72 118Z" fill="#3dd68c"/><path d="M128 118C140 112 170 122 158 138C146 134 128 124 128 118Z" fill="#55efc4"/></svg>
+
+<!-- NAV -->
+<nav>
+    <div class="nav-inner">
+        <a href="#" class="nav-brand">
+            <svg viewBox="0 0 200 200" fill="none"><path d="M100 30C100 30 70 75 100 105C130 75 100 30 100 30Z" fill="#d44fa0"/><path d="M100 105C100 105 45 70 55 95C65 120 100 105 100 105Z" fill="#e06cb5"/><path d="M100 105C100 105 155 70 145 95C135 120 100 105 100 105Z" fill="#e06cb5"/><path d="M100 105C100 105 30 85 42 108C54 131 100 105 100 105Z" fill="#d44fa0" opacity="0.7"/><path d="M100 105C100 105 170 85 158 108C146 131 100 105 100 105Z" fill="#d44fa0" opacity="0.7"/><path d="M72 118C60 112 30 122 42 138C54 134 72 124 72 118Z" fill="#3dd68c"/><path d="M128 118C140 112 170 122 158 138C146 134 128 124 128 118Z" fill="#55efc4"/></svg>
+            Lotus
+            <span class="nav-status">Online</span>
+        </a>
+        <div class="nav-right">
+            <a href="#features" class="nav-btn ghost"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Download</a>
+            <a href="#download" class="nav-btn purchase">Download</a>
+            <a href="#" class="nav-btn discord"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128c.12-.098.246-.198.373-.292a.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03z"/></svg> Discord</a>
+        </div>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-content" id="heroContent">
+        <div class="badge">PC Optimization Suite</div>
+        <h1>Optimize with<br><span class="hl">Lotus</span></h1>
+        <p class="hero-sub">Deep system tweaks, real-time monitoring, and one-click optimization. Unlock the full potential of your hardware.</p>
+        <div class="hero-btns">
+            <a href="#download" class="hero-btn primary">Download Free <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></a>
+            <a href="#features" class="hero-btn secondary"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Features</a>
+        </div>
+        <div class="stats">
+            <div class="stat"><div class="stat-val">100k+</div><div class="stat-lbl">Users</div></div>
+            <div class="stat"><div class="stat-val">99.9%</div><div class="stat-lbl">Uptime</div></div>
+            <div class="stat"><div class="stat-val">24/7</div><div class="stat-lbl">Support</div></div>
+        </div>
+    </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+    <div class="section-label reveal">Features</div>
+    <div class="section-title reveal">Everything you need</div>
+    <div class="section-desc reveal">Built-in tools that cover every aspect of Windows optimization.</div>
+    <div class="features-grid">
+        <div class="fcard reveal">
+            <div class="fcard-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+            <div class="fcard-tag">Lightning</div>
+            <h3>Speed</h3>
+            <p>Strips away bloat and optimizes services in seconds. Feel the instant boost in responsiveness and load times.</p>
+        </div>
+        <div class="fcard reveal">
+            <div class="fcard-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <div class="fcard-tag">Resilient</div>
+            <h3>Stability</h3>
+            <p>A field-tested engine crafted with years of experience. Built to last and give you the smoothest experience possible.</p>
+        </div>
+        <div class="fcard reveal">
+            <div class="fcard-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+            <div class="fcard-tag">Real-Time</div>
+            <h3>System Monitor</h3>
+            <p>Track CPU, GPU, RAM, and thermals in real-time with a beautiful dashboard. Know exactly what's happening inside.</p>
+        </div>
+        <div class="fcard reveal">
+            <div class="fcard-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9c0-.6-.26-1.17-.72-1.57l-.06-.06a2 2 0 012.83-2.83l.06.06c.4.46.97.72 1.57.72.6 0 1.17-.26 1.57-.72V3a2 2 0 014 0v.09c0 .6.26 1.17.72 1.57.4.46.97.72 1.57.72.6 0 1.17-.26 1.57-.72l.06-.06a2 2 0 012.83 2.83l-.06.06c-.46.4-.72.97-.72 1.57 0 .6.26 1.17.72 1.57l.06.06H21a2 2 0 010 4h-.09c-.6 0-1.17.26-1.57.72z"/></svg></div>
+            <div class="fcard-tag">Deep</div>
+            <h3>Registry Optimizer</h3>
+            <p>Safely clean and optimize your Windows registry. Remove dead entries, fix errors, and free up system resources.</p>
+        </div>
+        <div class="fcard reveal">
+            <div class="fcard-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2v-4M9 21H5a2 2 0 01-2-2v-4"/><path d="M14 9h1M14 15h1"/></svg></div>
+            <div class="fcard-tag">Auto</div>
+            <h3>BIOS Detection</h3>
+            <p>Auto-detects your CPU, GPU, and motherboard then generates hardware-specific BIOS optimization recommendations.</p>
+        </div>
+        <div class="fcard reveal">
+            <div class="fcard-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>
+            <div class="fcard-tag">24/7</div>
+            <h3>Support</h3>
+            <p>A dedicated team and Discord presence that actually responds. We're here to help no matter what time zone you're in.</p>
+        </div>
+    </div>
+</section>
+
+<!-- PRICING -->
+<section class="section" id="download">
+    <div class="section-label reveal">Download</div>
+    <div class="section-title reveal">Free Forever</div>
+    <div class="section-desc reveal">No subscriptions. No license keys. Just download and optimize.</div>
+    <div class="pricing-grid" style="grid-template-columns:1fr;max-width:420px;margin:0 auto">
+        <div class="pcard popular reveal">
+            <div class="pcard-badge">Free</div>
+            <h3>Lotus Optimizer</h3>
+            <div class="pcard-price"><span class="amount">$0</span> <span class="period">/ forever</span></div>
+            <ul><li>All Optimizations</li><li>GPU & BIOS Tweaks</li><li>Network & Privacy</li><li>Debloater & Cleaner</li><li>Unlimited Updates</li><li>Discord Support</li></ul>
+            <a href="https://github.com/cash3DaHood/Lotus/releases/latest/download/Lotus.exe" class="pcard-btn">Download for Windows</a>
+        </div>
+    </div>
+</section>
+
+<!-- UI PREVIEW -->
+<section class="preview-section">
+    <div class="preview-label reveal">Preview</div>
+    <div class="preview-title reveal">Built for Performance</div>
+    <div class="preview-desc reveal">A clean, intuitive interface designed for power users. Everything you need at your fingertips.</div>
+    <div class="ui-frame reveal-scale">
+        <div class="scan-bar"></div>
+        <div class="ui-frame-sweep"></div>
+        <div class="mock-ui">
+            <div class="mock-sidebar">
+                <div class="mock-sb-logo"><svg viewBox="0 0 200 180" fill="none"><path d="M100 30C100 30,75 70,100 105C125 70,100 30,100 30Z" fill="#d44fa0"/><path d="M100 105C100 105,50 72,58 95C66 118,100 105,100 105Z" fill="#e06cb5"/><path d="M100 105C100 105,150 72,142 95C134 118,100 105,100 105Z" fill="#e06cb5"/></svg></div>
+                <div class="mock-sb-item active"><div class="mock-sb-dot"></div></div>
+                <div class="mock-sb-item"><div class="mock-sb-dot"></div></div>
+                <div class="mock-sb-item"><div class="mock-sb-dot"></div></div>
+                <div class="mock-sb-item"><div class="mock-sb-dot"></div></div>
+                <div class="mock-sb-item"><div class="mock-sb-dot"></div></div>
+                <div class="mock-sb-item"><div class="mock-sb-dot"></div></div>
+            </div>
+            <div class="mock-main">
+                <div class="mock-header">
+                    <div>
+                        <div class="mock-title">Welcome to Lotus</div>
+                        <div class="mock-subtitle">System Dashboard</div>
+                    </div>
+                </div>
+                <div class="mock-cards">
+                    <div class="mock-card">
+                        <div class="mock-card-label">CPU</div>
+                        <div class="mock-card-val">Intel Core i9<span class="unit">—</span></div>
+                        <div class="mock-card-bar"><div class="mock-card-fill cpu"></div></div>
+                    </div>
+                    <div class="mock-card">
+                        <div class="mock-card-label">RAM</div>
+                        <div class="mock-card-val">32<span class="unit">GB</span></div>
+                        <div class="mock-card-bar"><div class="mock-card-fill ram"></div></div>
+                    </div>
+                    <div class="mock-card">
+                        <div class="mock-card-label">GPU</div>
+                        <div class="mock-card-val">NVIDIA RTX<span class="unit">—</span></div>
+                        <div class="mock-card-bar"><div class="mock-card-fill gpu"></div></div>
+                    </div>
+                </div>
+                <div class="mock-tweaks">
+                    <div class="mock-tweak">
+                        <div class="mock-tweak-left">
+                            <div class="mock-tweak-name">Disable Background Apps<span class="mock-tweak-tag rec">Recommended</span></div>
+                            <div class="mock-tweak-desc">Prevent apps from running in the background</div>
+                        </div>
+                        <div class="mock-toggle on"></div>
+                    </div>
+                    <div class="mock-tweak">
+                        <div class="mock-tweak-left">
+                            <div class="mock-tweak-name">Ultimate Power Plan<span class="mock-tweak-tag pwr">Power</span></div>
+                            <div class="mock-tweak-desc">Maximum performance power scheme</div>
+                        </div>
+                        <div class="mock-toggle on"></div>
+                    </div>
+                    <div class="mock-tweak">
+                        <div class="mock-tweak-left">
+                            <div class="mock-tweak-name">Disable Superfetch</div>
+                            <div class="mock-tweak-desc">Stop pre-loading apps into memory</div>
+                        </div>
+                        <div class="mock-toggle off"></div>
+                    </div>
+                    <div class="mock-tweak">
+                        <div class="mock-tweak-left">
+                            <div class="mock-tweak-name">TCP Optimization<span class="mock-tweak-tag rec">Recommended</span></div>
+                            <div class="mock-tweak-desc">Optimize network stack for lower latency</div>
+                        </div>
+                        <div class="mock-toggle on"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+    <h2 class="reveal">Ready to optimize?</h2>
+    <p class="reveal">Download Lotus for free and start boosting your system today.</p>
+    <div class="cta-btns reveal">
+        <a href="#download" class="hero-btn primary">Download Free</a>
+        <a href="#" class="hero-btn secondary">Join Discord</a>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+    <div class="footer-inner">
+        <div class="footer-brand">
+            <svg viewBox="0 0 200 200" fill="none"><path d="M100 30C100 30 70 75 100 105C130 75 100 30 100 30Z" fill="#d44fa0"/><path d="M100 105C100 105 45 70 55 95C65 120 100 105 100 105Z" fill="#e06cb5"/><path d="M100 105C100 105 155 70 145 95C135 120 100 105 100 105Z" fill="#e06cb5"/><path d="M72 118C60 112 30 122 42 138C54 134 72 124 72 118Z" fill="#3dd68c"/><path d="M128 118C140 112 170 122 158 138C146 134 128 124 128 118Z" fill="#55efc4"/></svg>
+            &copy; 2026 Lotus
+        </div>
+        <div class="footer-links">
+            <a href="#">Community</a>
+            <a href="#">Terms</a>
+            <a href="#">Privacy</a>
+        </div>
+    </div>
+</footer>
+
+<script>
+(function(){
+    // ═══ PARTICLE SYSTEM ═══
+    var canvas = document.getElementById('introParticles');
+    var ctx = canvas.getContext('2d');
+    var particles = [];
+    var running = true;
+
+    function resizeCanvas(){
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    function Particle(){
+        this.x = Math.random() * canvas.width;
+        this.y = canvas.height + Math.random() * 40;
+        this.size = Math.random() * 2.5 + 0.5;
+        this.speedY = -(Math.random() * 1.2 + 0.3);
+        this.speedX = (Math.random() - 0.5) * 0.4;
+        this.opacity = Math.random() * 0.6 + 0.1;
+        this.fade = Math.random() * 0.003 + 0.001;
+        var colors = [
+            'rgba(212,79,160,','rgba(224,108,181,','rgba(184,52,144,',
+            'rgba(61,214,140,','rgba(255,255,255,'
+        ];
+        this.color = colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    for(var i = 0; i < 80; i++){
+        var p = new Particle();
+        p.y = Math.random() * canvas.height;
+        particles.push(p);
+    }
+
+    function animateParticles(){
+        if(!running) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for(var i = particles.length - 1; i >= 0; i--){
+            var p = particles[i];
+            p.y += p.speedY;
+            p.x += p.speedX;
+            p.opacity -= p.fade;
+            if(p.opacity <= 0 || p.y < -10){
+                particles[i] = new Particle();
+                continue;
+            }
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = p.color + p.opacity + ')';
+            ctx.fill();
+            if(p.size > 1.5){
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
+                ctx.fillStyle = p.color + (p.opacity * 0.1) + ')';
+                ctx.fill();
+            }
+        }
+        requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    // ═══ PROGRESS BAR ═══
+    var bar = document.getElementById('introBar');
+    var pct = document.getElementById('introPercent');
+    var status = document.getElementById('introStatus');
+    var progress = 0;
+    var messages = [
+        {at: 0, text: 'Initializing environment...'},
+        {at: 25, text: 'Loading modules...'},
+        {at: 50, text: 'Initializing optimizer...'},
+        {at: 75, text: 'Preparing interface...'},
+        {at: 95, text: 'Almost ready...'}
+    ];
+    var msgIdx = 0;
+
+    var bottomBar = document.getElementById('introBottomBar');
+    var totalTime = 4000;
+    var startTime = Date.now();
+    function tick(){
+        var elapsed = Date.now() - startTime;
+        progress = Math.min(100, (elapsed / totalTime) * 100);
+        bar.style.width = progress + '%';
+        if(bottomBar) bottomBar.style.width = progress + '%';
+        pct.textContent = Math.floor(progress) + '%';
+        if(msgIdx < messages.length && progress >= messages[msgIdx].at){
+            status.textContent = messages[msgIdx].text;
+            var bt = document.getElementById('introBottomText');
+            if(bt) bt.textContent = messages[msgIdx].text;
+            msgIdx++;
+        }
+        if(progress >= 100){
+            pct.textContent = '100%';
+            status.textContent = 'Ready';
+            var bt = document.getElementById('introBottomText');
+            if(bt) bt.textContent = 'Ready';
+            setTimeout(function(){
+                document.getElementById('lotusIntro').classList.add('done');
+                running = false;
+                document.getElementById('heroContent').classList.add('show');
+                document.querySelector('nav').classList.add('visible');
+            }, 400);
+        } else {
+            requestAnimationFrame(tick);
+        }
+    }
+    requestAnimationFrame(tick);
+
+    // ═══ SCROLL REVEAL ═══
+    var revealObs = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+            if(e.isIntersecting){
+                e.target.classList.add('visible');
+                revealObs.unobserve(e.target);
+            }
+        });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale').forEach(function(el, i){
+        el.style.transitionDelay = (i % 6) * 0.06 + 's';
+        revealObs.observe(el);
+    });
+
+    // ═══ CURSOR GLOW + PARALLAX ═══
+    var cursorGlow = document.getElementById('cursorGlow');
+    var cursorDot = document.getElementById('cursorDot');
+    var mouseX = 0, mouseY = 0;
+    var glowX = 0, glowY = 0;
+
+    document.addEventListener('mousemove', function(e){
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        cursorDot.style.left = mouseX + 'px';
+        cursorDot.style.top = mouseY + 'px';
+
+        var x = mouseX / window.innerWidth;
+        var y = mouseY / window.innerHeight;
+        var glows = document.querySelectorAll('.bg-effects .glow');
+        glows.forEach(function(g, i){
+            var speed = (i + 1) * 12;
+            g.style.transform = 'translate(' + (x * speed - speed/2) + 'px,' + (y * speed - speed/2) + 'px)';
+        });
+    });
+
+    function animateCursorGlow(){
+        glowX += (mouseX - glowX) * 0.08;
+        glowY += (mouseY - glowY) * 0.08;
+        cursorGlow.style.left = glowX + 'px';
+        cursorGlow.style.top = glowY + 'px';
+        requestAnimationFrame(animateCursorGlow);
+    }
+    animateCursorGlow();
+
+    document.addEventListener('mouseenter', function(){ cursorGlow.style.opacity = '1'; cursorDot.style.opacity = '1'; });
+    document.addEventListener('mouseleave', function(){ cursorGlow.style.opacity = '0'; cursorDot.style.opacity = '0'; });
+})();
+</script>
+</body>
+</html>
